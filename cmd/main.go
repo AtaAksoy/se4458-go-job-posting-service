@@ -1,9 +1,15 @@
+// @title           Job Posting API
+// @version         1.0
+// @description     Job posting service with CRUD and pagination.
+// @host            localhost:8080
+// @BasePath        /
 package main
 
 import (
 	"log"
 
 	"github.com/AtaAksoy/se4458-go-job-posting-service/config"
+	_ "github.com/AtaAksoy/se4458-go-job-posting-service/docs"
 	"github.com/AtaAksoy/se4458-go-job-posting-service/internal"
 	"github.com/AtaAksoy/se4458-go-job-posting-service/internal/db"
 	"github.com/AtaAksoy/se4458-go-job-posting-service/internal/jobs"

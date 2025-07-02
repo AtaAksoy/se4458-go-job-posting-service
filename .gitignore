@@ -1,4 +1,4 @@
-# Binaries
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
@@ -10,12 +10,14 @@
 *.out
 
 # Dependency directories (remove the comment below if you use Go modules)
-# vendor/
+/vendor/
+
+# Go workspace file
+go.work
 
 # IDE/editor configs
-.vscode/
 .idea/
-*.swp
+.vscode/
 
 # OS files
 .DS_Store
@@ -24,10 +26,5 @@ Thumbs.db
 # Env files
 .env
 
-# SQLite or other local DB files
-*.db
-*.sqlite
-*.sqlite3
-
-# Logs
-*.log 
+# Swagger docs
+/docs/

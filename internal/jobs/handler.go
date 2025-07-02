@@ -16,6 +16,16 @@ func NewJobHandler(repo JobRepository) *JobHandler {
 	return &JobHandler{repo: repo}
 }
 
+// CreateJob godoc
+// @Summary      Create a new job
+// @Description  Add a new job posting
+// @Tags         jobs
+// @Accept       json
+// @Produce      json
+// @Param        job  body  CreateJobRequest  true  "Job info"
+// @Success      201  {object}  JobResponse
+// @Failure      400  {object}  map[string]string
+// @Router       /jobs [post]
 func (h *JobHandler) CreateJob(c *gin.Context) {
 	var req CreateJobRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -47,6 +57,17 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 	})
 }
 
+// ListJobs godoc
+// @Summary      List jobs
+// @Description  Get jobs with pagination
+// @Tags         jobs
+// @Accept       json
+// @Produce      json
+// @Param        page   query     int false "Page number"
+// @Param        limit  query     int false "Page size"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /jobs [get]
 func (h *JobHandler) ListJobs(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
@@ -85,6 +106,15 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 	})
 }
 
+// DeleteJob godoc
+// @Summary      Delete a job
+// @Description  Delete a job by ID
+// @Tags         jobs
+// @Param        id   path      int  true  "Job ID"
+// @Success      204  {string}  string  ""
+// @Failure      400  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /jobs/{id} [delete]
 func (h *JobHandler) DeleteJob(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.Atoi(idStr)
