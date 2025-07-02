@@ -41,7 +41,7 @@ func (h *JobHandler) CreateJob(c *gin.Context) {
 		Status:      true,
 		CreatedAt:   time.Now().Unix(),
 	}
-	if err := h.repo.Create(&job); err != nil {
+	if err := h.repo.Create(c.Request.Context(), &job); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create job"})
 		return
 	}
@@ -80,7 +80,7 @@ func (h *JobHandler) ListJobs(c *gin.Context) {
 		limit = 10
 	}
 	offset := (page - 1) * limit
-	jobs, total, err := h.repo.List(offset, limit)
+	jobs, total, err := h.repo.List(c.Request.Context(), offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list jobs"})
 		return
@@ -122,7 +122,7 @@ func (h *JobHandler) DeleteJob(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job id"})
 		return
 	}
-	if err := h.repo.Delete(uint(id)); err != nil {
+	if err := h.repo.Delete(c.Request.Context(), uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete job"})
 		return
 	}
@@ -158,7 +158,7 @@ func (h *JobHandler) SearchJobs(c *gin.Context) {
 		limit = 10
 	}
 	offset := (page - 1) * limit
-	jobs, total, err := h.repo.Search(q, offset, limit)
+	jobs, total, err := h.repo.Search(c.Request.Context(), q, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search jobs"})
 		return
@@ -203,7 +203,7 @@ func (h *JobHandler) GetJobByID(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job id"})
 		return
 	}
-	job, err := h.repo.GetByID(uint(id))
+	job, err := h.repo.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
@@ -251,7 +251,7 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 		return
 	}
 
-	_, err = h.repo.GetByID(uint(id))
+	_, err = h.repo.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		if err.Error() == "record not found" {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
@@ -286,12 +286,12 @@ func (h *JobHandler) UpdateJob(c *gin.Context) {
 		return
 	}
 
-	if err := h.repo.Update(uint(id), updates); err != nil {
+	if err := h.repo.Update(c.Request.Context(), uint(id), updates); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job"})
 		return
 	}
 
-	updatedJob, err := h.repo.GetByID(uint(id))
+	updatedJob, err := h.repo.GetByID(c.Request.Context(), uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get updated job"})
 		return

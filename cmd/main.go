@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/AtaAksoy/se4458-go-job-posting-service/config"
@@ -17,8 +18,21 @@ import (
 
 func main() {
 	cfg := config.LoadConfig()
+
 	dbConn := db.Connect(cfg.DBDSN, &jobs.Job{})
-	repo := jobs.NewGormJobRepository(dbConn)
+
+	redisClient := db.NewRedisClient(cfg.RedisAddr, cfg.RedisPass, cfg.RedisDB)
+
+	ctx := context.Background()
+	if err := redisClient.Ping(ctx); err != nil {
+		log.Printf("Warning: Redis connection failed: %v", err)
+	} else {
+		log.Println("Redis connected successfully")
+	}
+
+	jobCache := jobs.NewJobCache(redisClient)
+
+	repo := jobs.NewGormJobRepository(dbConn, jobCache)
 	handler := jobs.NewJobHandler(repo)
 
 	r := internal.SetupRouter(handler)
