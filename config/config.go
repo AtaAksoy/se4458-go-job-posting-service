@@ -17,8 +17,12 @@ func LoadConfig() *Config {
 	if err != nil {
 		log.Println("No .env file found, using environment variables")
 	}
+	dsn := getEnv("DB_DSN", "")
+	if dsn == "" {
+		log.Fatal("DB_DSN must be set in environment or .env file")
+	}
 	return &Config{
-		DBDSN: getEnv("DB_DSN", "jobs.db"),
+		DBDSN: dsn,
 		Port:  getEnv("PORT", "8080"),
 	}
 }
