@@ -183,3 +183,128 @@ func (h *JobHandler) SearchJobs(c *gin.Context) {
 		"limit": limit,
 	})
 }
+
+// GetJobByID godoc
+// @Summary      Get a job by ID
+// @Description  Get a specific job by its ID
+// @Tags         jobs
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Job ID"
+// @Success      200  {object}  JobResponse
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /jobs/{id} [get]
+func (h *JobHandler) GetJobByID(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job id"})
+		return
+	}
+	job, err := h.repo.GetByID(uint(id))
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get job"})
+		return
+	}
+	c.JSON(http.StatusOK, JobResponse{
+		ID:          job.ID,
+		Title:       job.Title,
+		Description: job.Description,
+		Company:     job.Company,
+		City:        job.City,
+		State:       job.State,
+		CreatedAt:   job.CreatedAt,
+		Status:      job.Status,
+	})
+}
+
+// UpdateJob godoc
+// @Summary      Update a job
+// @Description  Update a job by ID (partial update supported)
+// @Tags         jobs
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Job ID"
+// @Param        job  body      UpdateJobRequest  true  "Job update info"
+// @Success      200  {object}  JobResponse
+// @Failure      400  {object}  map[string]string
+// @Failure      404  {object}  map[string]string
+// @Failure      500  {object}  map[string]string
+// @Router       /jobs/{id} [put]
+func (h *JobHandler) UpdateJob(c *gin.Context) {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id < 1 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid job id"})
+		return
+	}
+
+	var req UpdateJobRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err = h.repo.GetByID(uint(id))
+	if err != nil {
+		if err.Error() == "record not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Job not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get job"})
+		return
+	}
+
+	updates := make(map[string]interface{})
+	if req.Title != nil {
+		updates["title"] = *req.Title
+	}
+	if req.Description != nil {
+		updates["description"] = *req.Description
+	}
+	if req.Company != nil {
+		updates["company"] = *req.Company
+	}
+	if req.City != nil {
+		updates["city"] = *req.City
+	}
+	if req.State != nil {
+		updates["state"] = *req.State
+	}
+	if req.Status != nil {
+		updates["status"] = *req.Status
+	}
+
+	if len(updates) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields to update"})
+		return
+	}
+
+	if err := h.repo.Update(uint(id), updates); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update job"})
+		return
+	}
+
+	updatedJob, err := h.repo.GetByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get updated job"})
+		return
+	}
+
+	c.JSON(http.StatusOK, JobResponse{
+		ID:          updatedJob.ID,
+		Title:       updatedJob.Title,
+		Description: updatedJob.Description,
+		Company:     updatedJob.Company,
+		City:        updatedJob.City,
+		State:       updatedJob.State,
+		CreatedAt:   updatedJob.CreatedAt,
+		Status:      updatedJob.Status,
+	})
+}

@@ -8,6 +8,15 @@ type CreateJobRequest struct {
 	State       string `json:"state" binding:"required"`
 }
 
+type UpdateJobRequest struct {
+	Title       *string `json:"title"`
+	Description *string `json:"description"`
+	Company     *string `json:"company"`
+	City        *string `json:"city"`
+	State       *string `json:"state"`
+	Status      *bool   `json:"status"`
+}
+
 type JobResponse struct {
 	ID          uint   `json:"id"`
 	Title       string `json:"title"`

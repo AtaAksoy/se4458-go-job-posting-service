@@ -9,6 +9,8 @@ type JobRepository interface {
 	List(offset, limit int) ([]Job, int64, error)
 	Delete(id uint) error
 	Search(query string, offset, limit int) ([]Job, int64, error)
+	GetByID(id uint) (*Job, error)
+	Update(id uint, updates map[string]interface{}) error
 }
 
 type GormJobRepository struct {
@@ -46,4 +48,17 @@ func (r *GormJobRepository) Search(query string, offset, limit int) ([]Job, int6
 	dbq.Count(&total)
 	err := dbq.Order("created_at desc").Offset(offset).Limit(limit).Find(&jobs).Error
 	return jobs, total, err
+}
+
+func (r *GormJobRepository) GetByID(id uint) (*Job, error) {
+	var job Job
+	err := r.db.First(&job, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &job, nil
+}
+
+func (r *GormJobRepository) Update(id uint, updates map[string]interface{}) error {
+	return r.db.Model(&Job{}).Where("id = ?", id).Updates(updates).Error
 }

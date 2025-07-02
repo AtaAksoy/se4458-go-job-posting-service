@@ -18,6 +18,8 @@ func SetupRouter(jobHandler *jobs.JobHandler) *gin.Engine {
 		{
 			jobsGroup.POST("", jobHandler.CreateJob)
 			jobsGroup.GET("", jobHandler.ListJobs)
+			jobsGroup.GET(":id", jobHandler.GetJobByID)
+			jobsGroup.PUT(":id", jobHandler.UpdateJob)
 			jobsGroup.DELETE(":id", jobHandler.DeleteJob)
 			jobsGroup.GET("/search", jobHandler.SearchJobs)
 		}
