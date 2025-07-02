@@ -128,3 +128,58 @@ func (h *JobHandler) DeleteJob(c *gin.Context) {
 	}
 	c.Status(http.StatusNoContent)
 }
+
+// SearchJobs godoc
+// @Summary      Search jobs
+// @Description  Search jobs by query string in title, description, company, city, or state
+// @Tags         jobs
+// @Accept       json
+// @Produce      json
+// @Param        q      query     string true  "Search query"
+// @Param        page   query     int    false "Page number"
+// @Param        limit  query     int    false "Page size"
+// @Success      200  {object}  map[string]interface{}
+// @Failure      500  {object}  map[string]string
+// @Router       /jobs/search [get]
+func (h *JobHandler) SearchJobs(c *gin.Context) {
+	q := c.Query("q")
+	if q == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing search query"})
+		return
+	}
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
+	jobs, total, err := h.repo.Search(q, offset, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search jobs"})
+		return
+	}
+	responses := make([]JobResponse, len(jobs))
+	for i, job := range jobs {
+		responses[i] = JobResponse{
+			ID:          job.ID,
+			Title:       job.Title,
+			Description: job.Description,
+			Company:     job.Company,
+			City:        job.City,
+			State:       job.State,
+			CreatedAt:   job.CreatedAt,
+			Status:      job.Status,
+		}
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"jobs":  responses,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	})
+}
